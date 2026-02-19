@@ -16,7 +16,14 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const options = parseListOptions(searchParams);
+  const parseResult = parseListOptions(searchParams);
+  if (parseResult.error) {
+    return NextResponse.json(
+      { error: parseResult.error },
+      { status: 400 }
+    );
+  }
+  const options = parseResult.options;
 
   const tradesRepo = createSupabaseTradesRepository(supabase);
   const listTrades = new ListTradesUseCase(tradesRepo);
@@ -73,9 +80,14 @@ export async function POST(request: Request) {
   return NextResponse.json({ trade });
 }
 
+function parseDateParam(value: string): Date | null {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function parseListOptions(
   searchParams: URLSearchParams
-): ListTradesOptions | undefined {
+): { options?: ListTradesOptions; error?: string } {
   const symbol = searchParams.get("symbol") ?? undefined;
   const assetType = searchParams.get("assetType") ?? undefined;
   const dateFrom = searchParams.get("dateFrom");
@@ -87,8 +99,21 @@ function parseListOptions(
     | null;
   const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | null;
 
+  if (dateFrom) {
+    const parsed = parseDateParam(dateFrom);
+    if (!parsed) {
+      return { error: `Invalid dateFrom format: "${dateFrom}". Use ISO 8601 (e.g. YYYY-MM-DD).` };
+    }
+  }
+  if (dateTo) {
+    const parsed = parseDateParam(dateTo);
+    if (!parsed) {
+      return { error: `Invalid dateTo format: "${dateTo}". Use ISO 8601 (e.g. YYYY-MM-DD).` };
+    }
+  }
+
   if (!symbol && !assetType && !dateFrom && !dateTo && !sortField && !sortOrder) {
-    return undefined;
+    return { options: undefined };
   }
 
   const options: ListTradesOptions = {};
@@ -97,13 +122,13 @@ function parseListOptions(
     options.filters = {};
     if (symbol) options.filters.symbol = symbol;
     if (assetType) options.filters.assetType = assetType;
-    if (dateFrom) options.filters.dateFrom = new Date(dateFrom);
-    if (dateTo) options.filters.dateTo = new Date(dateTo);
+    if (dateFrom) options.filters.dateFrom = parseDateParam(dateFrom)!;
+    if (dateTo) options.filters.dateTo = parseDateParam(dateTo)!;
   }
 
   if (sortField && sortOrder) {
     options.sort = { field: sortField, order: sortOrder };
   }
 
-  return options;
+  return { options };
 }

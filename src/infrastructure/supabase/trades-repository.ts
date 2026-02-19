@@ -21,6 +21,7 @@ export function createSupabaseTradesRepository(
     async list(options?: ListTradesOptions): Promise<Trade[]> {
       const sortField = options?.sort?.field ?? "exit_date";
       const dbSortField = sortField === "pnl" ? "exit_date" : sortField;
+      const isPnlSort = sortField === "pnl";
 
       let query = supabase
         .from("trades")
@@ -43,7 +44,11 @@ export function createSupabaseTradesRepository(
 
       const limit = options?.limit ?? 500;
       const offset = options?.offset ?? 0;
-      query = query.range(offset, offset + limit - 1);
+      // When sorting by PnL (computed client-side), fetch all matching rows
+      // so the use case can sort by PnL before applying limit/offset.
+      if (!isPnlSort) {
+        query = query.range(offset, offset + limit - 1);
+      }
 
       const { data, error } = await query;
       if (error) throw error;

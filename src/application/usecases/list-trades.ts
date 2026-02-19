@@ -20,6 +20,10 @@ export class ListTradesUseCase {
         enriched = enriched.sort((a, b) =>
           asc ? a.pnl - b.pnl : b.pnl - a.pnl
         );
+        // Apply limit/offset after PnL sort (repo skips them for pnl sort)
+        const limit = options?.limit ?? 500;
+        const offset = options?.offset ?? 0;
+        enriched = enriched.slice(offset, offset + limit);
       }
 
       return { trades: enriched, error: null };

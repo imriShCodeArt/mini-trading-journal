@@ -38,7 +38,8 @@ function formatPnl(value: number): string {
 export function EquityCurve({ trades, isLoading }: EquityCurveProps) {
   const chartData = useMemo(() => {
     const curve = computeEquityCurve(trades);
-    return curve.map(({ date, cumulativePnl }) => ({
+    return curve.map(({ date, cumulativePnl }, index) => ({
+      index,
       date: formatDate(date),
       cumulativePnl,
       label: formatPnl(cumulativePnl),
@@ -79,14 +80,20 @@ export function EquityCurve({ trades, isLoading }: EquityCurveProps) {
         Equity Curve
       </Typography>
       <Paper variant="outlined" sx={{ p: 2 }}>
-        <ResponsiveContainer width="100%" height={280}>
+        <Box sx={{ width: "100%", minHeight: 280 }}>
+          <ResponsiveContainer width="100%" height={280}>
           <LineChart
             data={chartData}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
             <XAxis
-              dataKey="date"
+              dataKey="index"
+              type="number"
+              domain={[0, "dataMax"]}
+              tickFormatter={(value) =>
+                chartData[value as number]?.date ?? ""
+              }
               tick={{ fontSize: 12 }}
               tickLine={false}
             />
@@ -103,18 +110,22 @@ export function EquityCurve({ trades, isLoading }: EquityCurveProps) {
                   "Cumulative PnL",
                 ] as [string, string]
               }
-              labelFormatter={(label) => `Date: ${label}`}
+              labelFormatter={(label, payload) => {
+                const item = payload?.[0]?.payload;
+                return item?.date ? `Date: ${item.date}` : String(label);
+              }}
             />
             <Line
               type="monotone"
               dataKey="cumulativePnl"
-              stroke="var(--mui-palette-primary-main)"
+              stroke="#10b981"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3, fill: "#10b981" }}
               connectNulls
             />
           </LineChart>
         </ResponsiveContainer>
+        </Box>
       </Paper>
     </Box>
   );

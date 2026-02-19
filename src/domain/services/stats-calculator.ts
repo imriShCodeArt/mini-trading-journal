@@ -57,16 +57,26 @@ export function computeStats(trades: TradeWithComputed[]): TradeStats {
 
 /**
  * Builds equity curve: sorted by exit_date asc, cumulative PnL.
+ * Includes a starting point (0) so the chart always has at least 2 points.
  */
 export function computeEquityCurve(
   trades: TradeWithComputed[]
 ): { date: Date; cumulativePnl: number }[] {
+  if (trades.length === 0) return [];
+
   const sorted = [...trades].sort(
     (a, b) => a.exitDate.getTime() - b.exitDate.getTime()
   );
+  const firstDate = sorted[0]!.exitDate;
+  const startDate = new Date(firstDate.getTime() - 24 * 60 * 60 * 1000);
+
+  const result: { date: Date; cumulativePnl: number }[] = [
+    { date: startDate, cumulativePnl: 0 },
+  ];
   let cumulative = 0;
-  return sorted.map((t) => {
+  for (const t of sorted) {
     cumulative += t.pnl;
-    return { date: t.exitDate, cumulativePnl: cumulative };
-  });
+    result.push({ date: t.exitDate, cumulativePnl: cumulative });
+  }
+  return result;
 }

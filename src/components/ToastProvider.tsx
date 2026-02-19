@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -52,8 +53,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToast((t) => ({ ...t, open: false }));
   }, []);
 
+  const value = useMemo(
+    () => ({ showError, showSuccess }),
+    [showError, showSuccess]
+  );
+
   return (
-    <ToastContext.Provider value={{ showError, showSuccess }}>
+    <ToastContext.Provider value={value}>
       {children}
       <Snackbar
         open={toast.open}

@@ -112,7 +112,9 @@ export function StatsPanel({ stats, isLoading }: StatsPanelProps) {
             value={
               stats.profitFactor !== null
                 ? stats.profitFactor.toFixed(2)
-                : "—"
+                : stats.wins > 0
+                  ? "∞"
+                  : "—"
             }
             isLoading={isLoading}
           />

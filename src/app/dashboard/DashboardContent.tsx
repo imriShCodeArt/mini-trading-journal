@@ -59,6 +59,7 @@ export function DashboardContent({ userEmail }: DashboardContentProps) {
     }),
     [filters, sort]
   );
+  const toast = useToast();
   const { data: trades, isLoading: tradesLoading, error: tradesError } =
     useTrades(listOptions);
   const { stats, isLoading: statsLoading } = useStats(listOptions);
@@ -67,8 +68,7 @@ export function DashboardContent({ userEmail }: DashboardContentProps) {
     if (tradesError) {
       toast.showError(tradesError.message);
     }
-  }, [tradesError]);
-  const toast = useToast();
+  }, [tradesError, toast]);
   const createTrade = useCreateTrade({
     onError: (err) => toast.showError(err.message),
   });
