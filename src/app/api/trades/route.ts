@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
 import { createSupabaseTradesRepository } from "@/infrastructure/supabase/trades-repository";
 import { ListTradesUseCase } from "@/application/usecases/list-trades";
+import { CreateTradeUseCase } from "@/application/usecases/create-trade";
 import type { ListTradesOptions } from "@/application/ports/trades-repository";
 
 export async function GET(request: Request) {
@@ -29,6 +30,47 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({ trades });
+}
+
+export async function POST(request: Request) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid JSON body" },
+      { status: 400 }
+    );
+  }
+
+  const tradesRepo = createSupabaseTradesRepository(supabase);
+  const createTrade = new CreateTradeUseCase(tradesRepo);
+  const { trade, error } = await createTrade.execute(body as Parameters<CreateTradeUseCase["execute"]>[0], user.id);
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 400 }
+    );
+  }
+
+  if (!trade) {
+    return NextResponse.json(
+      { error: "Failed to create trade" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ trade });
 }
 
 function parseListOptions(
