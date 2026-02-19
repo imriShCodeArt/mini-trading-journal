@@ -27,7 +27,11 @@ async function createTrade(input: CreateTradeInput): Promise<{ trade: unknown }>
   return data;
 }
 
-export function useCreateTrade() {
+interface UseCreateTradeOptions {
+  onError?: (error: Error) => void;
+}
+
+export function useCreateTrade(options?: UseCreateTradeOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -35,5 +39,6 @@ export function useCreateTrade() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trades"] });
     },
+    onError: options?.onError,
   });
 }

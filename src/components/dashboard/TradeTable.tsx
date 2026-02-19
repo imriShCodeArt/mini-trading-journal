@@ -2,6 +2,7 @@
 
 import {
   Box,
+  IconButton,
   Paper,
   Skeleton,
   Table,
@@ -12,6 +13,8 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { TradeWithComputed } from "@/domain/entities/trade";
 import type { AssetType, TradeSide } from "@/domain/entities/trade";
 
@@ -46,9 +49,16 @@ function formatSide(side: TradeSide): string {
 interface TradeTableProps {
   trades: TradeWithComputed[];
   isLoading?: boolean;
+  onEdit?: (trade: TradeWithComputed) => void;
+  onDelete?: (trade: TradeWithComputed) => void;
 }
 
-export function TradeTable({ trades, isLoading }: TradeTableProps) {
+export function TradeTable({
+  trades,
+  isLoading,
+  onEdit,
+  onDelete,
+}: TradeTableProps) {
   if (isLoading) {
     return (
       <Box sx={{ mb: 3 }}>
@@ -69,6 +79,11 @@ export function TradeTable({ trades, isLoading }: TradeTableProps) {
                 <TableCell align="right">Size</TableCell>
                 <TableCell align="right">PnL</TableCell>
                 <TableCell align="right">PnL %</TableCell>
+                {(onEdit || onDelete) && (
+                  <TableCell align="right" width={80}>
+                    Actions
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -104,6 +119,11 @@ export function TradeTable({ trades, isLoading }: TradeTableProps) {
                   <TableCell align="right">
                     <Skeleton variant="text" width={50} />
                   </TableCell>
+                  {(onEdit || onDelete) && (
+                    <TableCell align="right">
+                      <Skeleton variant="text" width={60} />
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -147,6 +167,11 @@ export function TradeTable({ trades, isLoading }: TradeTableProps) {
               <TableCell align="right">Size</TableCell>
               <TableCell align="right">PnL</TableCell>
               <TableCell align="right">PnL %</TableCell>
+              {(onEdit || onDelete) && (
+                <TableCell align="right" width={80}>
+                  Actions
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -201,6 +226,29 @@ export function TradeTable({ trades, isLoading }: TradeTableProps) {
                 >
                   {formatPercent(trade.pnlPercent)}
                 </TableCell>
+                {(onEdit || onDelete) && (
+                  <TableCell align="right">
+                    {onEdit && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onEdit(trade)}
+                        aria-label={`Edit ${trade.symbol}`}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    {onDelete && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onDelete(trade)}
+                        aria-label={`Delete ${trade.symbol}`}
+                        color="error"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

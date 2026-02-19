@@ -5,6 +5,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import theme from "@/theme";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -21,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AppRouterCacheProvider options={{ key: "mui" }}>
-        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+        <ThemeProvider theme={theme}>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </AppRouterCacheProvider>
     </QueryClientProvider>
   );

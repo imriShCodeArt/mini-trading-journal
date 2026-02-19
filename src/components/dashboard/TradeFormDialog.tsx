@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,7 +17,11 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import type { CreateTradeInput } from "@/domain/entities/trade";
+import type {
+  CreateTradeInput,
+  TradeWithComputed,
+  UpdateTradeInput,
+} from "@/domain/entities/trade";
 
 const assetTypeEnum = z.enum(["stock", "crypto", "forex", "index", "other"]);
 const sideEnum = z.enum(["long", "short"]);
@@ -59,6 +63,8 @@ interface TradeFormDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (input: CreateTradeInput) => Promise<void>;
+  onEditSubmit?: (id: string, input: UpdateTradeInput) => Promise<void>;
+  trade?: TradeWithComputed | null;
   isSubmitting?: boolean;
 }
 
@@ -66,11 +72,14 @@ export function TradeFormDialog({
   open,
   onClose,
   onSubmit,
+  onEditSubmit,
+  trade = null,
   isSubmitting = false,
 }: TradeFormDialogProps) {
   const now = new Date();
   const defaultEntry = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const defaultExit = now;
+  const isEdit = !!trade;
 
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -81,19 +90,53 @@ export function TradeFormDialog({
     reset,
   } = useForm<TradeFormValues>({
     resolver: zodResolver(tradeFormSchema) as Resolver<TradeFormValues>,
-    defaultValues: {
-      symbol: "",
-      assetType: "stock",
-      side: "long",
-      entryDate: defaultEntry,
-      exitDate: defaultExit,
-      entryPrice: 0,
-      exitPrice: 0,
-      positionSize: 0,
-      fees: 0,
-      notes: "",
-    },
+    defaultValues: trade
+      ? {
+          symbol: trade.symbol,
+          assetType: trade.assetType,
+          side: trade.side,
+          entryDate: trade.entryDate,
+          exitDate: trade.exitDate,
+          entryPrice: trade.entryPrice,
+          exitPrice: trade.exitPrice,
+          positionSize: trade.positionSize,
+          fees: trade.fees,
+          notes: trade.notes ?? "",
+        }
+      : {
+          symbol: "",
+          assetType: "stock",
+          side: "long",
+          entryDate: defaultEntry,
+          exitDate: defaultExit,
+          entryPrice: 0,
+          exitPrice: 0,
+          positionSize: 0,
+          fees: 0,
+          notes: "",
+        },
   });
+
+  useEffect(() => {
+    if (open) {
+      reset(
+        trade
+          ? {
+              symbol: trade.symbol,
+              assetType: trade.assetType,
+              side: trade.side,
+              entryDate: trade.entryDate,
+              exitDate: trade.exitDate,
+              entryPrice: trade.entryPrice,
+              exitPrice: trade.exitPrice,
+              positionSize: trade.positionSize,
+              fees: trade.fees,
+              notes: trade.notes ?? "",
+            }
+          : undefined
+      );
+    }
+  }, [open, trade, reset]);
 
   const handleClose = () => {
     setServerError(null);
@@ -103,29 +146,40 @@ export function TradeFormDialog({
 
   async function handleFormSubmit(values: TradeFormValues) {
     setServerError(null);
+    const input = {
+      symbol: values.symbol,
+      assetType: values.assetType,
+      side: values.side,
+      entryDate: values.entryDate,
+      exitDate: values.exitDate,
+      entryPrice: values.entryPrice,
+      exitPrice: values.exitPrice,
+      positionSize: values.positionSize,
+      fees: values.fees,
+      notes: values.notes,
+    };
     try {
-      await onSubmit({
-        symbol: values.symbol,
-        assetType: values.assetType,
-        side: values.side,
-        entryDate: values.entryDate,
-        exitDate: values.exitDate,
-        entryPrice: values.entryPrice,
-        exitPrice: values.exitPrice,
-        positionSize: values.positionSize,
-        fees: values.fees,
-        notes: values.notes,
-      });
+      if (isEdit && trade && onEditSubmit) {
+        await onEditSubmit(trade.id, input);
+      } else {
+        await onSubmit(input);
+      }
       handleClose();
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Failed to add trade");
+      setServerError(
+        err instanceof Error
+          ? err.message
+          : isEdit
+            ? "Failed to update trade"
+            : "Failed to add trade"
+      );
     }
   }
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>Add Trade</DialogTitle>
+        <DialogTitle>{isEdit ? "Edit Trade" : "Add Trade"}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
           {serverError && (
             <FormHelperText error sx={{ mx: 0 }}>
@@ -283,7 +337,13 @@ export function TradeFormDialog({
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? "Adding…" : "Add Trade"}
+            {isSubmitting
+              ? isEdit
+                ? "Saving…"
+                : "Adding…"
+              : isEdit
+                ? "Save"
+                : "Add Trade"}
           </Button>
         </DialogActions>
       </form>
