@@ -10,7 +10,10 @@ This project uses a **hosted Supabase project** (no Docker required).
 ## Quick Start
 
 1. `.env.local` is configured with the project URL and anon key
-2. Run the app: `yarn dev`
+2. Add redirect URLs in Supabase Dashboard → Authentication → URL Configuration:
+   - `http://localhost:3000/auth/callback` (for magic link)
+   - `http://localhost:3000/auth/reset-password` (for password reset)
+3. Run the app: `yarn dev`
 
 ## Available Scripts
 

@@ -1,30 +1,94 @@
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import Link from "@/components/Link";
+
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 font-sans">
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-        <div className="flex max-w-md flex-col items-center gap-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-50 sm:text-5xl">
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <AppBar position="static" color="default" elevation={0}>
+        <Toolbar>
+          <Typography
+            variant="h6"
+            component={Link}
+            href="/"
+            sx={{
+              textDecoration: "none",
+              color: "inherit",
+              flexGrow: 1,
+            }}
+          >
             Mini Trading Journal
-          </h1>
-          <p className="text-lg leading-relaxed text-slate-400">
-            Track your trades, analyze performance, and refine your strategy.
-          </p>
-          <div className="flex gap-4">
-            <a
-              href="#"
-              className="rounded-lg bg-emerald-600 px-6 py-3 font-medium text-white transition-colors hover:bg-emerald-500"
+          </Typography>
+          <Button component={Link} href="/login" color="inherit">
+            Sign in
+          </Button>
+          <Button
+            component={Link}
+            href="/signup"
+            variant="contained"
+            sx={{ ml: 1 }}
+          >
+            Sign up
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "calc(100vh - 64px)",
+          py: 8,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h3" component="h1" fontWeight={600} gutterBottom>
+              Mini Trading Journal
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mb: 4, fontSize: "1.125rem" }}
             >
-              Get Started
-            </a>
-            <a
-              href="#"
-              className="rounded-lg border border-slate-600 px-6 py-3 font-medium text-slate-300 transition-colors hover:border-slate-500 hover:bg-slate-800/50"
+              Track your trades, analyze performance, and refine your strategy.
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
             >
-              View Trades
-            </a>
-          </div>
-        </div>
-      </main>
-    </div>
+              <Button
+                component={Link}
+                href="/login"
+                variant="contained"
+                size="large"
+              >
+                Get Started
+              </Button>
+              <Button
+                component={Link}
+                href="/dashboard"
+                variant="outlined"
+                size="large"
+              >
+                View Trades
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+    </Box>
   );
 }
