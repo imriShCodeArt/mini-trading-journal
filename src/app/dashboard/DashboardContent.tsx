@@ -11,6 +11,10 @@ import {
 } from "@mui/material";
 import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";
 import Link from "@/components/Link";
+import { StatsPanel } from "@/components/dashboard/StatsPanel";
+import { TradeTable } from "@/components/dashboard/TradeTable";
+import { useStats } from "@/hooks/use-stats";
+import { useTrades } from "@/hooks/use-trades";
 
 interface DashboardContentProps {
   userEmail?: string;
@@ -18,6 +22,8 @@ interface DashboardContentProps {
 
 export function DashboardContent({ userEmail }: DashboardContentProps) {
   const router = useRouter();
+  const { data: trades, isLoading: tradesLoading } = useTrades();
+  const { stats, isLoading: statsLoading } = useStats();
 
   async function handleSignOut() {
     const supabase = createSupabaseBrowserClient();
@@ -26,11 +32,18 @@ export function DashboardContent({ userEmail }: DashboardContentProps) {
     router.refresh();
   }
 
+  const isLoading = tradesLoading || statsLoading;
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AppBar position="static" color="default" elevation={0}>
         <Toolbar>
-          <Typography variant="h6" component={Link} href="/dashboard" sx={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component={Link}
+            href="/dashboard"
+            sx={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}
+          >
             Mini Trading Journal
           </Typography>
           {userEmail && (
@@ -48,9 +61,8 @@ export function DashboardContent({ userEmail }: DashboardContentProps) {
         <Typography variant="h5" gutterBottom>
           Dashboard
         </Typography>
-        <Typography color="text.secondary">
-          Your trades and stats will appear here. (Phase 2)
-        </Typography>
+        <StatsPanel stats={stats} isLoading={isLoading} />
+        <TradeTable trades={trades ?? []} isLoading={isLoading} />
       </Container>
     </Box>
   );
