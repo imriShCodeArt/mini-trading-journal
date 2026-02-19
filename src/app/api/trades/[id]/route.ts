@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
 import { createSupabaseTradesRepository } from "@/infrastructure/supabase/trades-repository";
+import { createYahooFinanceSymbolValidator } from "@/infrastructure/yahoo-finance/symbol-validator";
 import { UpdateTradeUseCase } from "@/application/usecases/update-trade";
 import { DeleteTradeUseCase } from "@/application/usecases/delete-trade";
 import type { UpdateTradeInput } from "@/domain/entities/trade";
@@ -31,7 +32,8 @@ export async function PATCH(
   }
 
   const tradesRepo = createSupabaseTradesRepository(supabase);
-  const updateTrade = new UpdateTradeUseCase(tradesRepo);
+  const symbolValidator = createYahooFinanceSymbolValidator();
+  const updateTrade = new UpdateTradeUseCase(tradesRepo, symbolValidator);
   const { trade, error } = await updateTrade.execute(id, body as UpdateTradeInput);
 
   if (error) {

@@ -43,6 +43,7 @@ export function FiltersBar({
       }}
     >
       <TextField
+        id="filter-symbol"
         label="Symbol"
         size="small"
         value={filters.symbol ?? ""}
@@ -57,8 +58,10 @@ export function FiltersBar({
       />
 
       <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel>Asset Type</InputLabel>
+        <InputLabel id="filter-asset-type-label">Asset Type</InputLabel>
         <Select
+          id="filter-asset-type"
+          labelId="filter-asset-type-label"
           value={filters.assetType ?? ""}
           label="Asset Type"
           onChange={(e) =>
@@ -78,6 +81,7 @@ export function FiltersBar({
       </FormControl>
 
       <TextField
+        id="filter-from-date"
         label="From Date"
         type="date"
         size="small"
@@ -99,6 +103,7 @@ export function FiltersBar({
       />
 
       <TextField
+        id="filter-to-date"
         label="To Date"
         type="date"
         size="small"
@@ -120,8 +125,10 @@ export function FiltersBar({
       />
 
       <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel>Sort By</InputLabel>
+        <InputLabel id="filter-sort-label">Sort By</InputLabel>
         <Select
+          id="filter-sort"
+          labelId="filter-sort-label"
           value={`${sort.field}-${sort.order}`}
           label="Sort By"
           onChange={(e) => {

@@ -1,9 +1,13 @@
 import type { CreateTradeInput, Trade } from "@/domain/entities/trade";
 import type { TradesRepository } from "../ports/trades-repository";
+import type { SymbolValidator } from "../ports/symbol-validator";
 import { createTradeSchema } from "@/domain/validation/trade-schema";
 
 export class CreateTradeUseCase {
-  constructor(private tradesRepo: TradesRepository) {}
+  constructor(
+    private tradesRepo: TradesRepository,
+    private symbolValidator?: SymbolValidator
+  ) {}
 
   async execute(
     input: CreateTradeInput,
@@ -17,6 +21,21 @@ export class CreateTradeUseCase {
           parsed.error.issues.map((e) => e.message ?? String(e)).join(", ")
         ),
       };
+    }
+
+    if (this.symbolValidator) {
+      const valid = await this.symbolValidator.isValid(
+        parsed.data.symbol,
+        parsed.data.assetType
+      );
+      if (!valid) {
+        return {
+          trade: null,
+          error: new Error(
+            `Symbol "${parsed.data.symbol}" is not a valid ${parsed.data.assetType}. Please check the symbol and try again.`
+          ),
+        };
+      }
     }
 
     try {

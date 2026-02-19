@@ -17,6 +17,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { SymbolAutocomplete } from "./SymbolAutocomplete";
 import type {
   CreateTradeInput,
   TradeWithComputed,
@@ -86,6 +87,7 @@ export function TradeFormDialog({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
     reset,
   } = useForm<TradeFormValues>({
@@ -186,15 +188,6 @@ export function TradeFormDialog({
               {serverError}
             </FormHelperText>
           )}
-          <TextField
-            label="Symbol"
-            {...register("symbol")}
-            error={!!errors.symbol}
-            helperText={errors.symbol?.message}
-            fullWidth
-            required
-            autoFocus
-          />
 
           <Controller
             name="assetType"
@@ -213,6 +206,23 @@ export function TradeFormDialog({
                   <FormHelperText>{errors.assetType.message}</FormHelperText>
                 )}
               </FormControl>
+            )}
+          />
+
+          <Controller
+            name="symbol"
+            control={control}
+            render={({ field }) => (
+              <SymbolAutocomplete
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                assetType={watch("assetType")}
+                error={!!errors.symbol}
+                helperText={errors.symbol?.message}
+                required
+                autoFocus
+              />
             )}
           />
 

@@ -44,12 +44,32 @@ export function createSupabaseTradesRepository(
 
       const limit = options?.limit ?? 500;
       const offset = options?.offset ?? 0;
-      // When sorting by PnL (computed client-side), fetch all matching rows
-      // so the use case can sort by PnL before applying limit/offset.
-      if (!isPnlSort) {
-        query = query.range(offset, offset + limit - 1);
+
+      if (isPnlSort) {
+        // Fetch all rows for client-side PnL sort. Supabase defaults to 1000 rows,
+        // so we paginate in chunks until we have the full dataset.
+        const PAGE_SIZE = 1000;
+        const allRows: Trade[] = [];
+        let pageOffset = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const pageQuery = query.range(
+            pageOffset,
+            pageOffset + PAGE_SIZE - 1
+          );
+          const { data, error } = await pageQuery;
+          if (error) throw error;
+          const rows = (data ?? []).map(rowToTrade);
+          allRows.push(...rows);
+          hasMore = rows.length === PAGE_SIZE;
+          pageOffset += PAGE_SIZE;
+        }
+
+        return allRows;
       }
 
+      query = query.range(offset, offset + limit - 1);
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map(rowToTrade);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
 import { createSupabaseTradesRepository } from "@/infrastructure/supabase/trades-repository";
+import { createYahooFinanceSymbolValidator } from "@/infrastructure/yahoo-finance/symbol-validator";
 import { ListTradesUseCase } from "@/application/usecases/list-trades";
 import { CreateTradeUseCase } from "@/application/usecases/create-trade";
 import type { ListTradesOptions } from "@/application/ports/trades-repository";
@@ -60,7 +61,8 @@ export async function POST(request: Request) {
   }
 
   const tradesRepo = createSupabaseTradesRepository(supabase);
-  const createTrade = new CreateTradeUseCase(tradesRepo);
+  const symbolValidator = createYahooFinanceSymbolValidator();
+  const createTrade = new CreateTradeUseCase(tradesRepo, symbolValidator);
   const { trade, error } = await createTrade.execute(body as Parameters<CreateTradeUseCase["execute"]>[0], user.id);
 
   if (error) {
